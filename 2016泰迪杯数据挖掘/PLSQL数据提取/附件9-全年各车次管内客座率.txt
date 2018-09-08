@@ -1,0 +1,121 @@
+﻿DECLARE 
+	v_depart_train_date depart_train.s_date%TYPE;
+	v_num_a aboard.passenger_num%TYPE:=0;
+	v_num_d aboard.passenger_num%TYPE:=0;
+	v_num_sum aboard.passenger_num%TYPE:=0;
+	v_pm_num depart_train.PASSENGER_NUM%TYPE:=0;
+	v_sum_zz depart_train.LOAD_FACTOR%TYPE;
+	v_max_mile train_number_redo.mliestone_km%TYPE;
+	v_min_mile train_number_redo.mliestone_km%TYPE;
+	v_sum_mile train_number_redo.mliestone_km%TYPE;
+	v_mlie_las train_number_redo.mliestone_km%TYPE;
+	v_lf depart_train.LOAD_FACTOR%TYPE;
+	v_flag number(2);
+	CURSOR c_date IS SELECT DISTINCT s_date FROM depart_train order by s_date asc;
+BEGIN
+	OPEN c_date;
+	LOOP
+		FETCH c_date INTO v_depart_train_date;
+		DBMS_OUTPUT.PUT(v_depart_train_date||'@');
+		EXIT WHEN c_date%NOTFOUND;
+		FOR v_dt IN (SELECT DISTINCT * FROM depart_train WHERE s_date =v_depart_train_date )LOOP
+			SELECT max(mliestone_km) INTO v_max_mile FROM train_number_redo WHERE train_num = v_dt.train_num and station<>'BE_station' and station<>'AF_station';
+			SELECT min(mliestone_km) INTO v_min_mile FROM train_number_redo WHERE train_num = v_dt.train_num and station<>'BE_station' and station<>'AF_station';
+			v_sum_mile:=v_max_mile - v_min_mile;
+			IF(v_sum_mile = 0)THEN v_sum_mile:=1;END IF;
+			v_pm_num:=v_dt.PASSENGER_NUM;
+			v_num_sum:=0;
+			v_flag:=0;
+			v_sum_zz:=0;
+			IF(v_dt.up_or_down=1)THEN
+				FOR v_tn IN (SELECT DISTINCT TN_ID,mliestone_km FROM train_number_redo WHERE train_num =v_dt.train_num and station<>'AF_station' ORDER BY mliestone_km asc)LOOP
+					IF(v_tn.mliestone_km=-1)THEN
+						SELECT sum(PASSENGER_NUM) INTO v_num_a FROM aboard WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						SELECT sum(PASSENGER_NUM) INTO v_num_d FROM down WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						IF (v_num_a is null)THEN v_num_a:=0;END IF;
+						IF (v_num_d is null)THEN v_num_d:=0;END IF;
+						v_num_sum:=v_num_sum+v_num_a-v_num_d;
+						IF(v_num_sum>v_pm_num)THEN v_pm_num:=v_num_sum;END IF;
+						v_flag:=0;
+					ELSE
+						SELECT sum(PASSENGER_NUM) INTO v_num_a FROM aboard WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						SELECT sum(PASSENGER_NUM) INTO v_num_d FROM down WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						IF (v_num_a is null)THEN v_num_a:=0;END IF;
+						IF (v_num_d is null)THEN v_num_d:=0;END IF;
+						IF(v_num_sum>v_pm_num)THEN v_pm_num:=v_num_sum;END IF;
+						IF(v_flag=0)THEN
+							v_flag:=1;
+							v_mlie_las:=v_tn.mliestone_km;
+						ELSE
+							v_sum_zz:=v_sum_zz+v_num_sum*(v_tn.mliestone_km-v_mlie_las);
+							v_mlie_las:=v_tn.mliestone_km;
+						END IF;
+						v_num_sum:=v_num_sum+v_num_a-v_num_d;
+					END IF;
+				END LOOP;
+				v_pm_num:=v_pm_num*v_sum_mile;
+				v_lf:=v_sum_zz*100/v_pm_num;
+				DBMS_OUTPUT.PUT(v_dt.train_num||':'||v_lf||'@');
+			ELSE IF(v_dt.up_or_down=0)THEN
+				FOR v_tn IN (SELECT DISTINCT TN_ID,mliestone_km FROM train_number_redo WHERE train_num =v_dt.train_num and station<>'AF_station' ORDER BY mliestone_km DESC)LOOP
+					IF(v_tn.mliestone_km=-1)THEN
+						SELECT sum(PASSENGER_NUM) INTO v_num_a FROM aboard WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						SELECT sum(PASSENGER_NUM) INTO v_num_d FROM down WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						IF (v_num_a is null)THEN v_num_a:=0;END IF;
+						IF (v_num_d is null)THEN v_num_d:=0;END IF;
+						v_num_sum:=v_num_sum+v_num_a-v_num_d;
+						IF(v_num_sum>v_pm_num)THEN v_pm_num:=v_num_sum;END IF;
+						v_flag:=0;
+					ELSE
+						SELECT sum(PASSENGER_NUM) INTO v_num_a FROM aboard WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						SELECT sum(PASSENGER_NUM) INTO v_num_d FROM down WHERE SERVICE_ID=v_dt.SERVICE_ID AND TN_ID = v_tn.TN_ID;
+						IF (v_num_a is null)THEN v_num_a:=0;END IF;
+						IF (v_num_d is null)THEN v_num_d:=0;END IF;
+						IF(v_num_sum>v_pm_num)THEN v_pm_num:=v_num_sum;END IF;
+						IF(v_flag=0)THEN
+							v_flag:=1;
+							v_mlie_las:=v_tn.mliestone_km;
+						ELSE
+							v_sum_zz:=v_sum_zz+v_num_sum*(v_mlie_las-v_tn.mliestone_km);
+							v_mlie_las:=v_tn.mliestone_km;
+						END IF;
+						v_num_sum:=v_num_sum+v_num_a-v_num_d;
+					END IF;
+				END LOOP;
+				v_pm_num:=v_pm_num*v_sum_mile;
+				v_lf:=v_sum_zz*100/v_pm_num;
+				DBMS_OUTPUT.PUT(v_dt.train_num||':'||v_lf||'@');
+				END IF;
+			END IF;
+			
+		END LOOP;
+		DBMS_OUTPUT.NEW_LINE;
+	END LOOP;
+	CLOSE c_date;
+END;
+
+
+
+
+
+
+
+
+//添加公里数，更新train_number_redo表，提高上表查询效率
+DECLARE 
+	v_tn_station train_number_redo.station%TYPE;
+	v_tn_id train_number_redo.tn_id%TYPE;
+	v_mliestone_km station.mliestone_km%type;
+	CURSOR c_tn_id IS SELECT DISTINCT tn_id,station FROM train_number_redo order by tn_id asc;
+BEGIN
+	OPEN c_tn_id;
+	LOOP
+		FETCH c_tn_id INTO v_tn_id,v_tn_station;
+		EXIT WHEN c_tn_id%NOTFOUND;
+		SELECT mliestone_km INTO v_mliestone_km FROM station WHERE station_name =v_tn_station;
+		UPDATE train_number_redo SET mliestone_km=v_mliestone_km  WHERE TN_ID=v_tn_id;
+	END LOOP;
+	CLOSE c_tn_id;
+END;
+
+

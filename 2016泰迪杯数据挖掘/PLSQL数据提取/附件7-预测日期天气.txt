@@ -1,0 +1,25 @@
+DECLARE 
+	v_weather weather%ROWTYPE;
+	v_aboard_pn aboard.passenger_num%TYPE;
+	v_depart_train_date depart_train.s_date%TYPE;
+	v_num aboard.passenger_num%TYPE;
+	v_num_b aboard.passenger_num%TYPE:=0;
+	v_num_a aboard.passenger_num%TYPE:=0;
+	v_station station.location%TYPE:='others';
+	CURSOR c_date IS SELECT DISTINCT m_date FROM weather WHERE m_date > to_date('2016-3-20','yyyy-mm-dd') and m_date < to_date('2016-4-6','yyyy-mm-dd') order by m_date asc;
+BEGIN
+	OPEN c_date;
+	LOOP
+		FETCH c_date INTO v_depart_train_date;
+		DBMS_OUTPUT.PUT(v_depart_train_date||'@'||'0'||'@');
+		EXIT WHEN c_date%NOTFOUND;
+		FOR v_station_location IN (SELECT DISTINCT location FROM station)LOOP
+		IF(v_station_location.location<>v_station) THEN
+			SELECT * INTO v_weather FROM weather WHERE  location=v_station_location.location AND m_date = v_depart_train_date;
+			DBMS_OUTPUT.PUT(v_weather.temperature_max||'@'||v_weather.temperature_min||'@'||v_weather.wind_p1_max||'@'||v_weather.wind_p1_min||'@'||v_weather.weather_con_am||'@'||v_weather.wind_p2_max||'@'||v_weather.wind_p2_min||'@'||v_weather.weather_con_pm||'@');
+		END IF;
+		END LOOP;
+		DBMS_OUTPUT.NEW_LINE;
+	END LOOP;
+	CLOSE c_date;
+END;

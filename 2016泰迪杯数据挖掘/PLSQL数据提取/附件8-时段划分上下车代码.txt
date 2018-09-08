@@ -1,0 +1,150 @@
+
+###每时段上车
+DECLARE 
+	v_depart_train_date depart_train.s_date%TYPE;
+	v_num aboard.passenger_num%TYPE:=0;
+	v_i integer:=0;
+	type array is varray(72) of date; 
+	time_arr array := array(to_date('2015-1-1 00:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 01:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 02:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 04:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 05:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 06:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 06:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 07:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 08:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 09:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 11:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 12:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 13:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 14:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 15:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 16:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 17:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 18:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 19:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 20:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 21:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 22:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 23:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 00:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 01:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 02:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 03:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 04:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 05:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 06:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 07:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 08:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 09:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 11:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 12:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 13:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 14:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 15:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 16:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 17:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 18:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 20:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 21:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 22:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 23:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 00:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 01:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 02:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 03:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 04:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 05:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 06:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 07:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 08:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 09:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 11:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 12:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 13:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 14:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 15:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 16:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 17:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 18:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 20:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 21:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 22:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 23:00','yyyy-mm-dd hh24:mi')
+						   ); 
+	CURSOR c_date IS SELECT DISTINCT s_date FROM depart_train order by s_date asc;
+BEGIN
+	OPEN c_date;
+	LOOP
+		FETCH c_date INTO v_depart_train_date;
+		EXIT WHEN c_date%NOTFOUND;
+		DBMS_OUTPUT.PUT(v_depart_train_date||'@');
+		v_i:=0;
+		LOOP
+			EXIT WHEN v_i>23; 
+			SELECT sum(aboard.passenger_num) INTO v_num from depart_train,aboard,train_number where depart_train.s_date=v_depart_train_date and( (train_number.LEAVE between time_arr(v_i+1) and time_arr(v_i+2))  or (train_number.LEAVE between time_arr(v_i+25) and time_arr(v_i+26)) ) and train_number.station<>'BE_station'and train_number.station<>'AF_station' and aboard.service_id=depart_train.service_id and aboard.tn_id=train_number.tn_id;
+			IF(v_num is null)THEN v_num:=0;END IF;
+			v_i:=v_i+1;
+		
+		DBMS_OUTPUT.PUT(v_num||'@');
+		END LOOP;
+		DBMS_OUTPUT.NEW_LINE;
+	END LOOP;
+	CLOSE c_date;
+END;
+
+
+
+
+
+
+
+
+
+
+
+###每时段下车
+DECLARE 
+	v_depart_train_date depart_train.s_date%TYPE;
+	v_num down.passenger_num%TYPE:=0;
+	v_i integer:=0;
+	type array is varray(72) of date; 
+	time_arr array := array(to_date('2015-1-1 00:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 01:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 02:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 04:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 05:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 06:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 06:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 07:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 08:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 09:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 11:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 12:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 13:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 14:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 15:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 16:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 17:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 18:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 19:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 20:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-1 21:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 22:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-1 23:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 00:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 01:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 02:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 03:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 04:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 05:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 06:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 07:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 08:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 09:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 11:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 12:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 13:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 14:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 15:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 16:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 17:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 18:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 20:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-2 21:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 22:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-2 23:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 00:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 01:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 02:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 03:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 04:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 05:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 06:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 07:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 08:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 09:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 11:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 12:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 13:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 14:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 15:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 16:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 17:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 18:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 10:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 20:00','yyyy-mm-dd hh24:mi'),
+						   to_date('2015-1-3 21:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 22:00','yyyy-mm-dd hh24:mi'),to_date('2015-1-3 23:00','yyyy-mm-dd hh24:mi')
+						   ); 
+	CURSOR c_date IS SELECT DISTINCT s_date FROM depart_train order by s_date asc;
+BEGIN
+	OPEN c_date;
+	LOOP
+		FETCH c_date INTO v_depart_train_date;
+		EXIT WHEN c_date%NOTFOUND;
+		DBMS_OUTPUT.PUT(v_depart_train_date||'@');
+		v_i:=0;
+		LOOP
+			EXIT WHEN v_i>23; 
+			SELECT sum(down.passenger_num) INTO v_num from depart_train,down,train_number where depart_train.s_date=v_depart_train_date and( (train_number.ARRIVE between time_arr(v_i+1) and time_arr(v_i+2))  or (train_number.ARRIVE between time_arr(v_i+25) and time_arr(v_i+26)) ) and train_number.station<>'BE_station'and train_number.station<>'AF_station' and down.service_id=depart_train.service_id and down.tn_id=train_number.tn_id;
+			IF(v_num is null)THEN v_num:=0;END IF;
+			v_i:=v_i+1;
+		
+		DBMS_OUTPUT.PUT(v_num||'@');
+		END LOOP;
+		DBMS_OUTPUT.NEW_LINE;
+	END LOOP;
+	CLOSE c_date;
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

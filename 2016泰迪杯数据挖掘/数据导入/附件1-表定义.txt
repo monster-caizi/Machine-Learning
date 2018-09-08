@@ -1,0 +1,89 @@
+
+SQL> CREATE TABLE weather(
+  2  id INTEGER PRIMARY KEY,
+  3  location NVARCHAR2(20),
+  4  m_date DATE,
+  5  temperature_max INTEGER,
+  6  temperature_min INTEGER,
+  7  wind_p_max INTEGER,
+  8  wind_p_min INTEGER,
+  9   wind_d NVARCHAR2(10),
+ 10  weather_con_am NVARCHAR2(10),
+ 11  weather_con_pm NVARCHAR2(10)
+ 12  );
+
+Table created.
+
+SQL> CREATE TABLE station(
+  2  station_name NVARCHAR2(20) PRIMARY KEY,
+  3  location NVARCHAR2(20),
+  4  mliestone_km INTEGER
+  5  );
+
+Table created.
+
+SQL> CREATE TABLE train_number(
+  2  tn_ID INTEGER PRIMARY KEY,
+  3  train_num NVARCHAR2(20),
+  4  station NVARCHAR2(20),
+  5  arrive DATE,
+  6  leave DATE,
+  7  CONSTRAINT fk_tn FOREIGN KEY (train_num) REFERENCES station(station_name)
+  8  );
+
+Table created.                                                               
+
+SQL> CREATE TABLE depart_train(
+  2  service_ID INTEGER PRIMARY KEY,
+  3  train_num NVARCHAR2(20),
+  4  station_F NVARCHAR2(20),
+  5  station_T NVARCHAR2(20),
+  6  s_date DATE,
+  7  s_time INTEGER ,
+  8  load_factor NUMBER(38,10),
+  9  passenger_num INTEGER
+ 10  );
+
+Table created.
+
+SQL> CREATE TABLE aboard(
+  2  se_ID1 INTEGER PRIMARY KEY,
+  3  service_ID INTEGER,
+  4  tn_ID INTEGER,
+  5  passenger_num INTEGER,
+  6  CONSTRAINT fk_service_ID foreign key (service_ID) references depart_train(service_ID),
+  7  CONSTRAINT fk_tn_ID foreign key (tn_ID) references train_number(tn_ID)
+  8  );
+
+Table created.
+
+
+SQL> CREATE TABLE down(
+  2      se_ID2 INTEGER PRIMARY KEY,
+  3      service_ID INTEGER,
+  4      tn_ID INTEGER,
+  5      passenger_num INTEGER,
+  6      CONSTRAINT fk_service_ID2 foreign key (service_ID) references depart_train(service_ID),
+  7      CONSTRAINT fk_tn_ID2 foreign key (tn_ID) references train_number(tn_ID)
+  8      );
+
+Table created.
+
+SQL> CREATE TABLE depart_detail(
+  2      se_ID INTEGER PRIMARY KEY,
+  3      se_ID1 INTEGER,
+  4      se_ID2 INTEGER,
+  5      passenger_num INTEGER,
+  6      CONSTRAINT fk_se_ID1 foreign key (se_ID1) references aboard(se_ID1),
+  7      CONSTRAINT fk_se_ID2 foreign key (se_ID2) references down(se_ID2)
+  8      );
+
+Table created.
+
+SQL> CREATE TABLE train_number AS SELECT¡¡* from train_number;
+
+Table created.
+
+
+
+SQL> spool off;

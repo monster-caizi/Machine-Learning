@@ -1,0 +1,75 @@
+
+##逐个获取D02到D19的上车平均的人数
+DECLARE 
+	v_date integer;
+	v_num aboard.passenger_num%TYPE:=0;
+	v_num_p aboard.passenger_num%TYPE:=0;
+	v_train_num depart_train.train_num%TYPE:='D19';
+BEGIN
+	SELECT count(*) INTO v_date FROM depart_train WHERE depart_train.train_num = v_train_num;
+	DBMS_OUTPUT.PUT(v_train_num||'@');
+	FOR v_station IN (SELECT station FROM train_number WHERE train_num = v_train_num)LOOP
+		SELECT sum(aboard.passenger_num) INTO v_num from depart_train,aboard,train_number where depart_train.train_num=v_train_num and train_number.station= v_station.station and train_number.train_num=v_train_num and aboard.service_id=depart_train.service_id and aboard.tn_id=train_number.tn_id;
+		IF(v_num is null)THEN v_num:=0;END IF;
+		v_num_p:= v_num/v_date;
+		DBMS_OUTPUT.PUT(v_station.station||':'||v_num_p||'@');
+	END LOOP;
+	DBMS_OUTPUT.NEW_LINE;
+END;
+/
+
+
+
+##逐个获取D02到D19的下车平均的人数
+DECLARE 
+	v_date integer;
+	v_num down.passenger_num%TYPE:=0;
+	v_num_p down.passenger_num%TYPE:=0;
+	v_train_num depart_train.train_num%TYPE:='D19';
+BEGIN
+	SELECT count(*) INTO v_date FROM depart_train WHERE depart_train.train_num = v_train_num;
+	DBMS_OUTPUT.PUT(v_train_num||'@');
+	FOR v_station IN (SELECT station FROM train_number WHERE train_num = v_train_num)LOOP
+		SELECT sum(down.passenger_num) INTO v_num from depart_train,down,train_number where depart_train.train_num=v_train_num and train_number.station= v_station.station and train_number.train_num=v_train_num and down.service_id=depart_train.service_id and down.tn_id=train_number.tn_id;
+		IF(v_num is null)THEN v_num:=0;END IF;
+		v_num_p:= v_num/v_date;
+		DBMS_OUTPUT.PUT(v_station.station||':'||v_num_p||'@');
+	END LOOP;
+	DBMS_OUTPUT.NEW_LINE;
+END;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

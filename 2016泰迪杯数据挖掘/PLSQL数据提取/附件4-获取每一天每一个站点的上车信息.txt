@@ -1,0 +1,37 @@
+DECLARE 
+	v_weather weather%ROWTYPE;
+	v_aboard_pn aboard.passenger_num%TYPE;
+	v_depart_train_date depart_train.s_date%TYPE;
+	v_num aboard.passenger_num%TYPE;
+	v_num_b aboard.passenger_num%TYPE:=0;
+	v_num_a aboard.passenger_num%TYPE:=0;
+	v_station station.location%TYPE:='others';
+	CURSOR c_date IS SELECT DISTINCT s_date FROM depart_train order by s_date asc;
+BEGIN
+	OPEN c_date;
+	LOOP
+		FETCH c_date INTO v_depart_train_date;
+		DBMS_OUTPUT.PUT(v_depart_train_date||'@'||'0'||'@');
+		EXIT WHEN c_date%NOTFOUND;
+		FOR v_station_location IN (SELECT DISTINCT location FROM station)LOOP
+		IF(v_station_location.location=v_station) THEN
+			SELECT sum(aboard.passenger_num) INTO v_num_b from depart_train,aboard,train_number where depart_train.s_date=v_depart_train_date and train_number.station='BE_station' and aboard.service_id=depart_train.service_id and aboard.tn_id=train_number.tn_id;
+			SELECT sum(aboard.passenger_num) INTO v_num_a from depart_train,aboard,train_number where depart_train.s_date=v_depart_train_date and train_number.station='AF_station' and aboard.service_id=depart_train.service_id and aboard.tn_id=train_number.tn_id;
+			IF(v_num_a is null)THEN v_num_a:=0;END IF;
+			IF(v_num_b is null)THEN v_num_b:=0;END IF;
+			v_num:=v_num_b+v_num_a;
+			DBMS_OUTPUT.PUT(v_num||'@');
+		ELSE
+			FOR v_station IN (SELECT station_name FROM station WHERE location = v_station_location.location)LOOP
+				SELECT sum(aboard.passenger_num) INTO v_num from depart_train,aboard,train_number where depart_train.s_date=v_depart_train_date and train_number.station=v_station.station_name and aboard.service_id=depart_train.service_id and aboard.tn_id=train_number.tn_id;
+				IF(v_num is null)THEN v_num:=0;END IF;
+				DBMS_OUTPUT.PUT(v_num||'@');
+			END LOOP;
+			SELECT * INTO v_weather FROM weather WHERE  location=v_station_location.location AND m_date = v_depart_train_date;
+			DBMS_OUTPUT.PUT(v_weather.temperature_max||'@'||v_weather.temperature_min||'@'||v_weather.wind_p1_max||'@'||v_weather.wind_p1_min||'@'||v_weather.weather_con_am||'@'||v_weather.wind_p2_max||'@'||v_weather.wind_p2_min||'@'||v_weather.weather_con_pm||'@');
+		END IF;
+		END LOOP;
+		DBMS_OUTPUT.NEW_LINE;
+	END LOOP;
+	CLOSE c_date;
+END;

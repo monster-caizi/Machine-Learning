@@ -1,0 +1,148 @@
+DECLARE 
+	v_weather weather%ROWTYPE;
+	v_aboard_pn aboard.passenger_num%TYPE;
+	v_depart_train_date depart_train.s_date%TYPE;
+	v_num aboard.passenger_num%TYPE:=0;
+	v_sum aboard.passenger_num%TYPE:=0;
+	v_station station.location%TYPE:='others';
+	CURSOR c_date IS SELECT DISTINCT s_date FROM depart_train order by s_date asc;
+BEGIN
+	OPEN c_date;
+	LOOP
+		FETCH c_date INTO v_depart_train_date;
+		DBMS_OUTPUT.PUT(v_depart_train_date||'@'||'0'||'@');
+		EXIT WHEN c_date%NOTFOUND;
+		FOR v_station_location_c IN (SELECT DISTINCT location FROM station)LOOP
+			IF(v_station_location_c.location=v_station) THEN
+				FOR v_station_location_o_r IN (SELECT DISTINCT location FROM station)LOOP
+					IF(v_station_location_o_r.location=v_station) THEN
+						SELECT sum(depart_detail.passenger_num) 
+						INTO v_sum 
+						FROM depart_train,station,down,aboard,down_train,train_number,depart_detail 
+						WHERE station.location =v_station 
+						and depart_train.s_date=v_depart_train_date 
+						and down_train.station=station.station_name 
+						and down.service_id=depart_train.service_id 
+						and down.tn_id=down_train.tn_id 
+						and train_number.station=station.station_name 
+						and aboard.service_id=depart_train.service_id 
+						and aboard.tn_id=train_number.tn_id 
+						and depart_detail.se_id1 = aboard.se_id1 
+						and depart_detail.se_id2=down.se_id2;
+						IF(v_sum is null) THEN v_sum:=0;END IF;	
+						DBMS_OUTPUT.PUT(v_sum||'@');
+					ELSE
+						FOR v_station_o_r IN (SELECT station_name FROM station WHERE location = v_station_location_o_r.location)LOOP
+							SELECT sum(depart_detail.passenger_num) 
+							INTO v_sum 
+							FROM depart_train,station,down,aboard,down_train,train_number,depart_detail 
+							WHERE station.location =v_station 
+							and depart_train.s_date=v_depart_train_date 
+							and down_train.station=v_station_o_r.station_name
+							and down.service_id=depart_train.service_id 
+							and down.tn_id=down_train.tn_id 
+							and train_number.station=station.station_name 
+							and aboard.service_id=depart_train.service_id 
+							and aboard.tn_id=train_number.tn_id 
+							and depart_detail.se_id1 = aboard.se_id1 
+							and depart_detail.se_id2=down.se_id2;
+							IF(v_sum is null) THEN v_sum:=0;END IF;	
+							DBMS_OUTPUT.PUT(v_sum||'@');
+						END LOOP;
+					END IF;
+				END LOOP;
+			ELSE
+				FOR v_station_location_r IN (SELECT DISTINCT location FROM station)LOOP
+					IF(v_station_location_r.location=v_station) THEN
+						FOR v_station_c IN (SELECT station_name FROM station WHERE location = v_station_location_c.location)LOOP
+							SELECT sum(depart_detail.passenger_num) 
+							INTO v_sum 
+							FROM depart_train,station,down,aboard,down_train,train_number,depart_detail 
+							WHERE station.location =v_station 
+							and depart_train.s_date=v_depart_train_date 
+							and down_train.station=station.station_name 
+							and down.service_id=depart_train.service_id 
+							and down.tn_id=down_train.tn_id 
+							and train_number.station=v_station_c.station_name 
+							and aboard.service_id=depart_train.service_id 
+							and aboard.tn_id=train_number.tn_id 
+							and depart_detail.se_id1 = aboard.se_id1 
+							and depart_detail.se_id2=down.se_id2;
+							IF(v_sum is null) THEN v_sum:=0;END IF;	
+							DBMS_OUTPUT.PUT(v_sum||'@');
+						END LOOP;
+					ELSE
+						FOR v_station_cc IN (SELECT station_name FROM station WHERE location = v_station_location_c.location)LOOP
+							FOR v_station_rr IN (SELECT station_name FROM station WHERE location = v_station_location_r.location)LOOP
+								SELECT sum(depart_detail.passenger_num) 
+								INTO v_sum 
+								FROM depart_train,station,down,aboard,down_train,train_number,depart_detail 
+								WHERE depart_train.s_date=v_depart_train_date 
+								and down_train.station=v_station_rr.station_name
+								and down.service_id=depart_train.service_id 
+								and down.tn_id=down_train.tn_id 
+								and train_number.station=v_station_cc.station_name 
+								and aboard.service_id=depart_train.service_id 
+								and aboard.tn_id=train_number.tn_id 
+								and depart_detail.se_id1 = aboard.se_id1 
+								and depart_detail.se_id2=down.se_id2;
+								IF(v_sum is null) THEN v_sum:=0;END IF;	
+								DBMS_OUTPUT.PUT(v_sum||'@');
+							END LOOP;
+						END LOOP;
+					END IF;
+				END LOOP;
+			END IF;
+		END LOOP;
+		DBMS_OUTPUT.NEW_LINE;
+	END LOOP;
+	CLOSE c_date;
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
